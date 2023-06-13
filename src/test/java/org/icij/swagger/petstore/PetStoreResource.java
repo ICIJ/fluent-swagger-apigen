@@ -63,7 +63,7 @@ public class PetStoreResource {
 
     public static void main(String[] args) {
         new WebServer().withSelectThreads(2).withThreadCount(10).configure(
-                routes -> routes.add(PetStoreResource.class)
+                routes -> routes.add(PetStoreResource.class).add(PetResource.class)
         ).start(12345);
     }
 }
