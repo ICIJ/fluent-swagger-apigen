@@ -11,14 +11,14 @@ import java.util.Map;
 
 import static net.codestory.http.errors.NotFoundException.notFoundIfNull;
 
-@Prefix("/api")
+@Prefix("/api/store")
 public class PetStoreResource {
     static StoreData storeData = new StoreData();
     static PetData petData = new PetData();
 
 
     @Operation(description = "Returns petstore home page")
-    @Get()
+    @Get
     public String root() {
         return "Fluent HTTP petstore";
     }
