@@ -1,5 +1,6 @@
 package org.icij.swagger.petstore;
 
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -30,8 +31,8 @@ public class PetResource {
             @ApiResponse(responseCode = "404", ref = "Pet not found") })
 
     public Pet getPetById(
-            @Parameter(name = "petId", description = "ID of pet that needs to be fetched", schema = @Schema(minimum = "1", maximum = "5"), required = true) Long petId)
-    {
+            @Parameter(name = "petId", description = "ID of pet that needs to be fetched", in = ParameterIn.PATH, schema = @Schema(minimum = "1", maximum = "5"), required = true)
+            Long petId) {
         return notFoundIfNull(petData.getPetById(petId));
     }
 
@@ -40,7 +41,7 @@ public class PetResource {
     @ApiResponses(value = { @ApiResponse(responseCode = "400", ref = "Invalid ID supplied"),
                             @ApiResponse(responseCode = "404", ref = "Pet not found")})
     @Delete("/:petId")
-    public boolean deletePet(@Parameter(description = "Pet id to delete", required = true) Long petId) {
+    public boolean deletePet(@Parameter(description = "Pet id to delete", in = ParameterIn.PATH, required = true) Long petId) {
         return petData.deletePet(petId);
     }
 
@@ -48,8 +49,7 @@ public class PetResource {
     @Operation(description = "Add a new pet to the store")
     @ApiResponses(value = { @ApiResponse(responseCode = "405", ref = "Invalid input", useReturnTypeSchema = true) })
     @Post
-    public Pet addPet(
-            @Parameter(description = "Pet object that needs to be added to the store", required = true) Pet pet) {
+    public Pet addPet(Pet pet) {
         return petData.addPet(pet);
     }
 
@@ -60,7 +60,7 @@ public class PetResource {
             @ApiResponse(responseCode = "200", useReturnTypeSchema = true)
     })
     @Put
-    public Pet updatePet(@Parameter(description = "Pet object that needs to be added to the store", required = true) Pet pet) {
+    public Pet updatePet(@Parameter(description = "Pet object that needs to be added to the store", in=ParameterIn.DEFAULT, required = true) Pet pet) {
         return petData.addPet(pet);
     }
 
@@ -72,7 +72,7 @@ public class PetResource {
             @ApiResponse(responseCode = "200", useReturnTypeSchema = true)
     })
     public List<Pet> findPetsByStatus(
-            @Parameter(description = "Status values that need to be considered for filter", required = true) String status) {
+            @Parameter(description = "Status values that need to be considered for filter", in = ParameterIn.QUERY, required = true) String status) {
         return petData.findPetByStatus(status);
     }
 
@@ -80,7 +80,7 @@ public class PetResource {
             description = "Multiple tags can be provided with comma separated strings. Use tag1, tag2, tag3 for testing.")
     @ApiResponses(value = { @ApiResponse(responseCode = "400", ref = "Invalid tag value") })
     @Get("/findByTags?tags=:tags")
-    public List<Pet> findPetsByTags(@Parameter(description = "Tags to filter by", required = true) String tags) {
+    public List<Pet> findPetsByTags(@Parameter(description = "Tags to filter by", in=ParameterIn.QUERY, required = true) String tags) {
         return petData.findPetByTags(tags);
     }
 
@@ -91,7 +91,7 @@ public class PetResource {
     })
     @Post("/:petId")
     public Payload updatePetWithForm (
-            @Parameter(name = "petId", description = "ID of pet that needs to be updated", required = true)Long petId,
+            @Parameter(name = "petId", description = "ID of pet that needs to be updated", in = ParameterIn.PATH, required = true)Long petId,
             Context context) {
         String name = context.query().get("name");
         String status = context.query().get("status");

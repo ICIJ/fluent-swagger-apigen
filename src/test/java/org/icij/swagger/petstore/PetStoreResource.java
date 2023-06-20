@@ -2,11 +2,13 @@ package org.icij.swagger.petstore;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import net.codestory.http.WebServer;
 import net.codestory.http.annotations.*;
 
+import javax.ws.rs.Consumes;
 import java.util.Map;
 
 import static net.codestory.http.errors.NotFoundException.notFoundIfNull;
@@ -39,15 +41,15 @@ public class PetStoreResource {
     )
     @Get("/order/:orderId")
     public Order getOrderById(
-            @Parameter(name = "orderId", description = "ID of pet that needs to be fetched", required = true ) Long orderId) {
+            @Parameter(name = "orderId", in = ParameterIn.PATH, description = "ID of pet that needs to be fetched", required = true ) Long orderId) {
         return notFoundIfNull(storeData.findOrderById(orderId));
     }
 
-    @Post("/order")
     @Operation(description = "Place an order for a pet")
     @ApiResponses({ @ApiResponse(responseCode = "400", ref = "Invalid Order") })
-    public Order placeOrder(
-            @Parameter(description = "order placed for purchasing the pet", required = true) Order order) {
+    @Post("/order")
+    @Consumes({"application/json"})
+    public Order placeOrder(Order order) {
         return storeData.placeOrder(order);
     }
 
@@ -57,7 +59,7 @@ public class PetStoreResource {
                     @ApiResponse(responseCode = "404", ref = "Order not found") })
     @Delete("/order/:orderId")
     public boolean deleteOrder(
-            @Parameter(name="orderId", description = "ID of the order that needs to be deleted", required = true) Long orderId) {
+            @Parameter(name="orderId", in = ParameterIn.PATH, description = "ID of the order that needs to be deleted", required = true) Long orderId) {
         return storeData.deleteOrder(orderId);
     }
 

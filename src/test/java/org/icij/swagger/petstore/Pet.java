@@ -66,7 +66,7 @@ public class Pet {
     }
 
     @XmlElement(name = "status")
-    @Schema(name = "pet status in the store", allowableValues = "available,pending,sold")
+    @Schema(name = "status", description = "pet status in the store", allowableValues = "available,pending,sold", example = "available")
     public String getStatus() {
         return status;
     }

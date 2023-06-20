@@ -9,153 +9,60 @@ import io.swagger.v3.core.util.AnnotationsUtils;
 import io.swagger.v3.core.util.Json;
 import io.swagger.v3.core.util.ParameterProcessor;
 import io.swagger.v3.core.util.ReflectionUtils;
-import io.swagger.v3.jaxrs2.OperationParser;
-import io.swagger.v3.jaxrs2.ReaderListener;
+import io.swagger.v3.jaxrs2.Reader;
 import io.swagger.v3.jaxrs2.ResolvedParameter;
 import io.swagger.v3.jaxrs2.ext.OpenAPIExtension;
 import io.swagger.v3.jaxrs2.ext.OpenAPIExtensions;
-import io.swagger.v3.jaxrs2.util.ReaderUtils;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.integration.ContextUtils;
-import io.swagger.v3.oas.integration.SwaggerConfiguration;
 import io.swagger.v3.oas.integration.api.OpenAPIConfiguration;
-import io.swagger.v3.oas.integration.api.OpenApiReader;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
-import io.swagger.v3.oas.models.Paths;
 import io.swagger.v3.oas.models.media.Encoding;
 import io.swagger.v3.oas.models.media.ObjectSchema;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.parameters.RequestBody;
 import io.swagger.v3.oas.models.responses.ApiResponses;
-import io.swagger.v3.oas.models.tags.Tag;
 import net.codestory.http.annotations.AnnotationHelper;
 import net.codestory.http.annotations.Prefix;
 import net.codestory.http.constants.Methods;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import javax.validation.constraints.NotNull;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 /**
  * from <a href="https://github.com/swagger-api/swagger-core/blob/master/modules/swagger-jaxrs2/src/main/java/io/swagger/v3/jaxrs2/Reader.java">Swagger Reader</a>
  */
-public class FluentReader implements OpenApiReader {
-    private final Logger LOGGER = LoggerFactory.getLogger(getClass());
-
-    private OpenAPI openAPI;
-    private final Paths paths;
-    private Components components;
-    private final Set<Tag> openApiTags;
-    protected OpenAPIConfiguration config;
-
+public class FluentReader extends Reader {
     public FluentReader() {
-        this(new OpenAPI());
-
+        super();
     }
 
     public FluentReader(OpenAPI openAPI) {
-        this.openAPI = openAPI;
-        this.paths = new Paths();
-        this.openApiTags = new LinkedHashSet<>();
-        this.components = new Components();
+        super(openAPI);
     }
 
-    public FluentReader(@NotNull SwaggerConfiguration openAPI31) {
-        this();
-        setConfiguration(openAPI31);
+    public FluentReader(OpenAPIConfiguration openApiConfiguration) {
+        super(openApiConfiguration);
     }
 
     @Override
-    public void setConfiguration(OpenAPIConfiguration openApiConfiguration) {
-        if (openApiConfiguration != null) {
-            this.config = ContextUtils.deepCopy(openApiConfiguration);
-            if (openApiConfiguration.getOpenAPI() != null) {
-                this.openAPI = this.config.getOpenAPI();
-                if (this.openAPI.getComponents() != null) {
-                    this.components = this.openAPI.getComponents();
-                }
-            }
-        }
-    }
-
-    @Override
-    public OpenAPI read(Set<Class<?>> set, Map<String, Object> map) {
-        return openAPI;
-    }
-
-    public OpenAPI read(Set<Class<?>> classes) {
-        Set<Class<?>> sortedClasses = new TreeSet<>((class1, class2) -> {
-            if (class1.equals(class2)) {
-                return 0;
-            } else if (class1.isAssignableFrom(class2)) {
-                return -1;
-            } else if (class2.isAssignableFrom(class1)) {
-                return 1;
-            }
-            return class1.getName().compareTo(class2.getName());
-        });
-        sortedClasses.addAll(classes);
-
-        Map<Class<?>, ReaderListener> listeners = new HashMap<>();
-
-        for (Class<?> cls : sortedClasses) {
-            if (ReaderListener.class.isAssignableFrom(cls) && !listeners.containsKey(cls)) {
-                try {
-                    listeners.put(cls, (ReaderListener) cls.newInstance());
-                } catch (Exception e) {
-                    LOGGER.error("Failed to create ReaderListener", e);
-                }
-            }
-        }
-
-        for (ReaderListener listener : listeners.values()) {
-            try {
-                listener.beforeScan(this, openAPI);
-            } catch (Exception e) {
-                LOGGER.error("Unexpected error invoking beforeScan listener [" + listener.getClass().getName() + "]", e);
-            }
-        }
-
-        for (Class<?> cls : sortedClasses) {
-            read(cls, "datashare", null, false, null, null, new LinkedHashSet<String>(), new ArrayList<Parameter>(), new HashSet<Class<?>>());
-        }
-
-        for (ReaderListener listener : listeners.values()) {
-            try {
-                listener.afterScan(this, openAPI);
-            } catch (Exception e) {
-                LOGGER.error("Unexpected error invoking afterScan listener [" + listener.getClass().getName() + "]", e);
-            }
-        }
-        return openAPI;
-    }
-
-    public OpenAPI read(Class<?> cls) {
-        return openAPI;
-    }
-
-    protected void read(Class<?> cls,
+    public OpenAPI read(Class<?> cls,
                         String parentPath,
                         String parentMethod,
                         boolean isSubresource,
@@ -176,20 +83,38 @@ public class FluentReader implements OpenApiReader {
                     .collect(Collectors.toList());
 
             List<Method> methodList = new ArrayList<>();
+
+            JavaType classType = TypeFactory.defaultInstance().constructType(cls);
+            BeanDescription bd = Json.mapper().getSerializationConfig().introspect(classType);
+
             RouteCollection routeCollection = new RouteCollection();
             AnnotationHelper.parseAnnotations("", cls, (httpMethod, uri, method) -> routeCollection.addResource(httpMethod, method, uri));
             for (RouteData route : routeCollection.routes) {
                 io.swagger.v3.oas.annotations.Operation apiOperation = ReflectionUtils.getAnnotation(route.method, io.swagger.v3.oas.annotations.Operation.class);
-                Operation operation = new Operation();
-                setOperationObjectFromApiOperationAnnotation(operation, apiOperation);
+                AnnotatedMethod annotatedMethod = bd.findMethod(route.method.getName(), route.method.getParameterTypes());
+                Operation operation = parseMethod(
+                        route.method,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        new ArrayList<>(),
+                        Optional.empty(),
+                        null,
+                        null,
+                        isSubresource,
+                        parentRequestBody,
+                        parentResponses,
+                        null,
+                        classResponses,
+                        annotatedMethod);
+                setOperationObjectFromApiOperationAnnotation(operation, apiOperation, null, null, null, null, null);
                 boolean methodDeprecated = ReflectionUtils.getAnnotation(route.method, Deprecated.class) != null;
 
                 if (methodDeprecated) {
                     operation.setDeprecated(true);
                 }
-                JavaType classType = TypeFactory.defaultInstance().constructType(cls);
-                BeanDescription bd = Json.mapper().getSerializationConfig().introspect(classType);
-                AnnotatedMethod annotatedMethod = bd.findMethod(route.method.getName(), route.method.getParameterTypes());
                 List<Parameter> operationParameters = new ArrayList<>();
                 List<Parameter> formParameters = new ArrayList<>();
                 Annotation[][] paramAnnotations = ReflectionUtils.getParameterAnnotations(route.method);
@@ -206,7 +131,7 @@ public class FluentReader implements OpenApiReader {
                             paramType = type;
                         }
                     }
-                    ResolvedParameter resolvedParameter = getParameters(paramType, Arrays.asList(paramAnnotations[i]), operation);
+                    ResolvedParameter resolvedParameter = getParameters(paramType, Arrays.asList(paramAnnotations[i]), operation, null, null, null);
                     operationParameters.addAll(resolvedParameter.parameters);
                     // collect params to use together as request Body
                     formParameters.addAll(resolvedParameter.formParameters);
@@ -258,8 +183,8 @@ public class FluentReader implements OpenApiReader {
                 }
 
                 PathItem pathItemObject;
-                if (openAPI.getPaths() != null && openAPI.getPaths().get(route.uriPattern) != null) {
-                    pathItemObject = openAPI.getPaths().get(route.uriPattern);
+                if (getOpenAPI().getPaths() != null && getOpenAPI().getPaths().get(route.uriPattern) != null) {
+                    pathItemObject = getOpenAPI().getPaths().get(route.uriPattern);
                 } else {
                     pathItemObject = new PathItem();
                 }
@@ -268,38 +193,38 @@ public class FluentReader implements OpenApiReader {
                     continue;
                 }
                 setPathItemOperation(pathItemObject, route.httpMethod, operation);
-                paths.addPathItem(route.uriPattern, pathItemObject);
-                if (openAPI.getPaths() != null) {
-                    this.paths.putAll(openAPI.getPaths());
+                getPaths().addPathItem(route.uriPattern, pathItemObject);
+                if (getOpenAPI().getPaths() != null) {
+                    getPaths().putAll(getOpenAPI().getPaths());
                 }
-                openAPI.setPaths(this.paths);
+                getOpenAPI().setPaths(getPaths());
             }
 
-            if (!isEmptyComponents(components) && openAPI.getComponents() == null) {
-                openAPI.setComponents(components);
+            if (!isEmptyComponents(getComponents()) && getOpenAPI().getComponents() == null) {
+                getOpenAPI().setComponents(getComponents());
             }
 
-            AnnotationsUtils.getTags(apiTags, true).ifPresent(openApiTags::addAll);
+            AnnotationsUtils.getTags(apiTags, true).ifPresent(getOpenApiTags()::addAll);
 
-            if (!openApiTags.isEmpty()) {
+            if (!getOpenApiTags().isEmpty()) {
                 Set<io.swagger.v3.oas.models.tags.Tag> tagsSet = new LinkedHashSet<>();
-                if (openAPI.getTags() != null) {
-                    for (io.swagger.v3.oas.models.tags.Tag tag : openAPI.getTags()) {
+                if (getOpenAPI().getTags() != null) {
+                    for (io.swagger.v3.oas.models.tags.Tag tag : getOpenAPI().getTags()) {
                         if (tagsSet.stream().noneMatch(t -> t.getName().equals(tag.getName()))) {
                             tagsSet.add(tag);
                         }
                     }
                 }
-                for (io.swagger.v3.oas.models.tags.Tag tag : openApiTags) {
+                for (io.swagger.v3.oas.models.tags.Tag tag : getOpenApiTags()) {
                     if (tagsSet.stream().noneMatch(t -> t.getName().equals(tag.getName()))) {
                         tagsSet.add(tag);
                     }
                 }
-                openAPI.setTags(new ArrayList<>(tagsSet));
+                getOpenAPI().setTags(new ArrayList<>(tagsSet));
             }
         }
+        return getOpenAPI();
     }
-
 
     private boolean isEmptyComponents(Components components) {
         if (components == null) {
@@ -335,7 +260,6 @@ public class FluentReader implements OpenApiReader {
         if (components.getResponses() != null && components.getResponses().size() > 0) {
             return false;
         }
-
         return true;
     }
 
@@ -368,43 +292,6 @@ public class FluentReader implements OpenApiReader {
             default:
                 break;
         }
-    }
-
-    private void setOperationObjectFromApiOperationAnnotation(
-            Operation operation,
-            io.swagger.v3.oas.annotations.Operation apiOperation) {
-        if (StringUtils.isNotBlank(apiOperation.summary())) {
-            operation.setSummary(apiOperation.summary());
-        }
-        if (StringUtils.isNotBlank(apiOperation.description())) {
-            operation.setDescription(apiOperation.description());
-        }
-
-        ReaderUtils.getStringListFromStringArray(apiOperation.tags()).ifPresent(tags ->
-                tags.stream()
-                        .filter(t -> operation.getTags() == null || (operation.getTags() != null && !operation.getTags().contains(t)))
-                        .forEach(operation::addTagsItem));
-
-        OperationParser.getApiResponses(apiOperation.responses(), null, null, components, null).ifPresent(responses -> {
-            if (operation.getResponses() == null) {
-                operation.setResponses(responses);
-            } else {
-                responses.forEach(operation.getResponses()::addApiResponse);
-            }
-        });
-    }
-
-    protected ResolvedParameter getParameters(Type type, List<Annotation> annotations, Operation operation) {
-        final Iterator<OpenAPIExtension> chain = OpenAPIExtensions.chain();
-        if (!chain.hasNext()) {
-            return new ResolvedParameter();
-        }
-        LOGGER.debug("getParameters for {}", type);
-        Set<Type> typesToSkip = new HashSet<>();
-        final OpenAPIExtension extension = chain.next();
-        LOGGER.debug("trying extension {}", extension);
-
-        return extension.extractParameters(annotations, type, typesToSkip, components, null, null, true, null, chain);
     }
 
     private static class MethodComparator implements Comparator<Method> {
