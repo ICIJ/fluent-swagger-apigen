@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.introspect.AnnotatedMethod;
 import com.fasterxml.jackson.databind.introspect.AnnotatedParameter;
 import com.fasterxml.jackson.databind.type.TypeFactory;
+import com.google.common.collect.Ordering;
 import io.swagger.v3.core.util.AnnotationsUtils;
 import io.swagger.v3.core.util.Json;
 import io.swagger.v3.core.util.ParameterProcessor;
@@ -43,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 /**
@@ -321,14 +323,14 @@ public class FluentReader extends Reader {
     }
 
     private static class RouteCollection {
-        List<RouteData> routes = new ArrayList<>();
+        Set<RouteData> routes = new TreeSet<>();
 
         protected void addResource(String httpMethod, Method method, String uriPattern) {
             routes.add(new RouteData(httpMethod, method, uriPattern));
         }
     }
 
-    private static class RouteData {
+    private static class RouteData implements Comparable<RouteData> {
         final String httpMethod;
         final Method method;
         final String uriPattern;
@@ -337,6 +339,12 @@ public class FluentReader extends Reader {
             this.httpMethod = httpMethod;
             this.method = method;
             this.uriPattern = uriPattern;
+        }
+
+        @Override
+        public int compareTo(RouteData other) {
+            int uriPatternResult = this.uriPattern.compareTo(other.uriPattern);
+            return uriPatternResult == 0 ? this.httpMethod.compareTo(other.httpMethod) : uriPatternResult;
         }
     }
 }
