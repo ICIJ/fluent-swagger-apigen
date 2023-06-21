@@ -44,7 +44,7 @@ public class SerializationMatchers {
             LOGGER.error("Failed to read value", e);
         }
         if (!lhs.equals(new ObjectNodeComparator())) {
-            assertEquals(Yaml.pretty(lhs), Yaml.pretty(rhs));
+            assertEquals(Yaml.pretty(rhs), Yaml.pretty(lhs));
         }
     }
 
@@ -57,7 +57,7 @@ public class SerializationMatchers {
             LOGGER.error("Failed to read value", e);
         }
         if (!lhs.equals(new ObjectNodeComparator(), rhs)) {
-            assertEquals(Yaml31.pretty(lhs), Yaml31.pretty(rhs));
+            assertEquals(Yaml31.pretty(rhs), Yaml31.pretty(lhs));
         }
     }
 

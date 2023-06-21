@@ -20,10 +20,16 @@ paths:
             type: integer
             format: int64
       responses:
+        default:
+          description: returns pet
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Pet'
         "400":
-          $ref: '#/components/responses/Invalid ID supplied'
+          description: when id is not a number
         "404":
-          $ref: '#/components/responses/Pet not found'
+          description: when no pet is found
     post:
       description: Updates a pet in the store with form data
       operationId: updatePetWithForm
@@ -36,10 +42,16 @@ paths:
             type: integer
             format: int64
       responses:
+        "200":
+          description: updated pet
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Payload'
         "405":
-          $ref: '#/components/responses/Invalid input'
+          description: Invalid input
         "404":
-          $ref: '#/components/responses/Pet not found'
+          description: Pet not found
     delete:
       description: Deletes a pet
       operationId: deletePet
@@ -51,31 +63,39 @@ paths:
             type: integer
             format: int64
       responses:
+        "200":
+          description: returns true if deleted
+          content:
+            '*/*':
+              schema:
+                type: boolean
         "400":
-          $ref: '#/components/responses/Invalid ID supplied'
+          description: Invalid ID supplied
         "404":
-          $ref: '#/components/responses/Pet not found'
+          description: Pet not found
   /api/pet:
     put:
       description: Update an existing pet
       operationId: updatePet
       responses:
         "400":
-          $ref: '#/components/responses/Invalid ID supplied'
+          description: Invalid ID supplied
         "404":
-          $ref: '#/components/responses/Pet not found'
+          description: Pet not found
         "405":
-          $ref: '#/components/responses/Validation exception'
+          description: Validation exception
     post:
       description: Add a new pet to the store
       operationId: addPet
       responses:
-        "405":
+        "200":
+          description: success
           content:
             '*/*':
               schema:
                 $ref: '#/components/schemas/Pet'
-          $ref: '#/components/responses/Invalid input'
+        "405":
+          description: Invalid input
   /api/pet/findByStatus:
     get:
       summary: Finds Pets by status
@@ -89,7 +109,15 @@ paths:
             type: string
       responses:
         "400":
-          $ref: '#/components/responses/Invalid status value'
+          description: Invalid status value
+        "200":
+          description: list of pet with input status
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Pet'
   /api/pet/findByTags?tags=:tags:
     get:
       summary: Finds Pets by tags
@@ -103,15 +131,40 @@ paths:
           schema:
             type: string
       responses:
+        "200":
+          description: list of bet with input tags
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Pet'
         "400":
-          $ref: '#/components/responses/Invalid tag value'
+          description: Invalid tag value
+  /api/store:
+    get:
+      description: Returns petstore home page
+      operationId: root
+      responses:
+        default:
+          description: default response
+          content:
+            '*/*':
+              schema:
+                type: string
   /api/store/order:
     post:
       description: Place an order for a pet
       operationId: placeOrder
       responses:
+        "200":
+          description: returns the placed order
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Order'
         "400":
-          $ref: '#/components/responses/Invalid Order'
+          description: Invalid Order
   /api/store/order/:orderId:
     get:
       summary: Find purchase order by ID
@@ -127,10 +180,12 @@ paths:
             type: integer
             format: int64
       responses:
+        "200":
+          description: returns order with given id
         "400":
-          $ref: '#/components/responses/Invalid ID supplied'
+          description: Invalid ID supplied
         "404":
-          $ref: '#/components/responses/Order not found'
+          description: Order not found
     delete:
       summary: For valid response try integer IDs with positive integer value. Negative
         or non-integer values will generate API errors
@@ -145,10 +200,12 @@ paths:
             type: integer
             format: int64
       responses:
+        "200":
+          description: returns true if deleted
         "400":
-          $ref: '#/components/responses/Invalid ID supplied'
+          description: Invalid ID supplied
         "404":
-          $ref: '#/components/responses/Order not found'
+          description: Order not found
   /api/store/inventory:
     get:
       summary: Returns a map of status codes to quantities
@@ -164,17 +221,6 @@ paths:
                 additionalProperties:
                   type: integer
                   format: int32
-  /api/store:
-    get:
-      description: Returns petstore home page
-      operationId: root
-      responses:
-        default:
-          description: default response
-          content:
-            '*/*':
-              schema:
-                type: string
 components:
   schemas:
     Category:
@@ -236,9 +282,9 @@ components:
     Payload:
       type: object
       properties:
-        success:
-          type: boolean
         error:
+          type: boolean
+        success:
           type: boolean
     Context:
       type: object

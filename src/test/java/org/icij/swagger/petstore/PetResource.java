@@ -1,14 +1,18 @@
 package org.icij.swagger.petstore;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import net.codestory.http.Context;
-import net.codestory.http.annotations.*;
-import io.swagger.v3.oas.annotations.*;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import net.codestory.http.Context;
+import net.codestory.http.annotations.Delete;
+import net.codestory.http.annotations.Get;
+import net.codestory.http.annotations.Post;
 import net.codestory.http.annotations.Prefix;
+import net.codestory.http.annotations.Put;
 import net.codestory.http.payload.Payload;
 
 import java.util.List;
@@ -27,8 +31,9 @@ public class PetResource {
     @Operation(description = "Find pet by ID",
             summary = "Returns a pet when ID < 10.  ID > 10 or nonintegers will simulate API error conditions"
     )
-    @ApiResponses(value = { @ApiResponse(responseCode = "400", ref = "Invalid ID supplied"),
-            @ApiResponse(responseCode = "404", ref = "Pet not found") })
+    @ApiResponses(value = { @ApiResponse(description = "returns pet", useReturnTypeSchema = true),
+            @ApiResponse(responseCode = "400", description="when id is not a number"),
+            @ApiResponse(responseCode = "404", description = "when no pet is found") })
 
     public Pet getPetById(
             @Parameter(name = "petId", description = "ID of pet that needs to be fetched", in = ParameterIn.PATH, schema = @Schema(minimum = "1", maximum = "5"), required = true)
@@ -38,8 +43,9 @@ public class PetResource {
 
 
     @Operation(description = "Deletes a pet")
-    @ApiResponses(value = { @ApiResponse(responseCode = "400", ref = "Invalid ID supplied"),
-                            @ApiResponse(responseCode = "404", ref = "Pet not found")})
+    @ApiResponses(value = { @ApiResponse(responseCode = "200", description = "returns true if deleted", useReturnTypeSchema = true),
+                            @ApiResponse(responseCode = "400", description = "Invalid ID supplied"),
+                            @ApiResponse(responseCode = "404", description = "Pet not found")})
     @Delete("/:petId")
     public boolean deletePet(@Parameter(description = "Pet id to delete", in = ParameterIn.PATH, required = true) Long petId) {
         return petData.deletePet(petId);
@@ -47,16 +53,18 @@ public class PetResource {
 
 
     @Operation(description = "Add a new pet to the store")
-    @ApiResponses(value = { @ApiResponse(responseCode = "405", ref = "Invalid input", useReturnTypeSchema = true) })
+    @ApiResponses(value = { @ApiResponse(responseCode = "200", description = "success", useReturnTypeSchema = true),
+                            @ApiResponse(responseCode = "405", description = "Invalid input"),
+                            @ApiResponse(responseCode = "200", useReturnTypeSchema = true)})
     @Post
     public Pet addPet(Pet pet) {
         return petData.addPet(pet);
     }
 
     @Operation(description = "Update an existing pet")
-    @ApiResponses(value = { @ApiResponse(responseCode = "400", ref = "Invalid ID supplied"),
-            @ApiResponse(responseCode = "404", ref = "Pet not found"),
-            @ApiResponse(responseCode = "405", ref = "Validation exception"),
+    @ApiResponses(value = { @ApiResponse(responseCode = "400", description = "Invalid ID supplied"),
+            @ApiResponse(responseCode = "404", description = "Pet not found"),
+            @ApiResponse(responseCode = "405", description = "Validation exception"),
             @ApiResponse(responseCode = "200", useReturnTypeSchema = true)
     })
     @Put
@@ -68,8 +76,8 @@ public class PetResource {
     @Operation(summary = "Finds Pets by status",
             description = "Multiple status values can be provided with comma separated strings")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "400", ref = "Invalid status value"),
-            @ApiResponse(responseCode = "200", useReturnTypeSchema = true)
+            @ApiResponse(responseCode = "400", description = "Invalid status value"),
+            @ApiResponse(responseCode = "200", description = "list of pet with input status", useReturnTypeSchema = true)
     })
     public List<Pet> findPetsByStatus(
             @Parameter(description = "Status values that need to be considered for filter", in = ParameterIn.QUERY, required = true) String status) {
@@ -78,7 +86,9 @@ public class PetResource {
 
     @Operation(summary = "Finds Pets by tags",
             description = "Multiple tags can be provided with comma separated strings. Use tag1, tag2, tag3 for testing.")
-    @ApiResponses(value = { @ApiResponse(responseCode = "400", ref = "Invalid tag value") })
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "list of bet with input tags", useReturnTypeSchema = true),
+            @ApiResponse(responseCode = "400", description = "Invalid tag value") })
     @Get("/findByTags?tags=:tags")
     public List<Pet> findPetsByTags(@Parameter(description = "Tags to filter by", in=ParameterIn.QUERY, required = true) String tags) {
         return petData.findPetByTags(tags);
@@ -86,8 +96,9 @@ public class PetResource {
 
     @Operation(description = "Updates a pet in the store with form data")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "405", ref = "Invalid input"),
-            @ApiResponse(responseCode = "404", ref = "Pet not found")
+            @ApiResponse(responseCode = "200", description = "updated pet", useReturnTypeSchema = true),
+            @ApiResponse(responseCode = "405", description = "Invalid input"),
+            @ApiResponse(responseCode = "404", description = "Pet not found")
     })
     @Post("/:petId")
     public Payload updatePetWithForm (
