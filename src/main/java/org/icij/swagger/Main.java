@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import static org.icij.swagger.ClassUtils.getSetOfClassesFromPackage;
+import static org.icij.swagger.ClassUtils.findAllClassesUsingClassLoader;
 
 public class Main {
     private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
@@ -19,13 +19,13 @@ public class Main {
             System.exit(1);
         }
         LOGGER.info("generating OpenAPI file for package {}", args[0]);
-        final OpenAPI openAPI = new FluentReader().read(getSetOfClassesFromPackage("org.icij.swagger.petstore"));
-        ObjectNode objectNode = Yaml.mapper().convertValue(openAPI, ObjectNode.class);
-        byte[] serialized = objectNode.binaryValue();
-        if (serialized != null) {
-            Files.write(Paths.get("openapi.yml"), serialized);
+        final OpenAPI openAPI = new FluentReader().read(findAllClassesUsingClassLoader(args[0]));
+        if (openAPI.getPaths().isEmpty()) {
+            LOGGER.warn("cannot find classes in package {}", args[0]);
         } else {
-            LOGGER.info("cannot find classes in package {}", args[0]);
+            ObjectNode objectNode = Yaml.mapper().convertValue(openAPI, ObjectNode.class);
+            String serialized = Yaml.pretty(objectNode);
+            Files.write(Paths.get("openapi.yml"), serialized.getBytes());
         }
     }
 }
