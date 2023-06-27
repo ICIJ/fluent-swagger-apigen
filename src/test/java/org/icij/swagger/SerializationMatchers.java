@@ -1,4 +1,4 @@
-package org.icij.swagger.petstore;
+package org.icij.swagger;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,25 +14,26 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.Comparator;
 
+import static org.icij.swagger.Main.createFactory;
 import static org.junit.Assert.assertEquals;
 
 public class SerializationMatchers {
     private static final Logger LOGGER = LoggerFactory.getLogger(SerializationMatchers.class);
 
     public static void assertEqualsToYaml(Object objectToSerialize, String yamlStr) {
-        apply(objectToSerialize, yamlStr, Yaml.mapper());
+        apply(objectToSerialize, yamlStr, createFactory());
     }
 
     public static void assertEqualsToJson(Object objectToSerialize, String jsonStr) {
-        apply(objectToSerialize, jsonStr, Json.mapper());
+        apply(objectToSerialize, jsonStr, createFactory());
     }
 
     public static void assertEqualsToYaml31(Object objectToSerialize, String yamlStr) {
-        apply31(objectToSerialize, yamlStr, Yaml31.mapper());
+        apply31(objectToSerialize, yamlStr, createFactory());
     }
 
     public static void assertEqualsToJson31(Object objectToSerialize, String jsonStr) {
-        apply31(objectToSerialize, jsonStr, Json31.mapper());
+        apply31(objectToSerialize, jsonStr, createFactory());
     }
 
     private static void apply(Object objectToSerialize, String str, ObjectMapper mapper) {

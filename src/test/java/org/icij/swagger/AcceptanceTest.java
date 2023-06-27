@@ -1,7 +1,6 @@
 package org.icij.swagger;
 
 import io.swagger.v3.oas.models.OpenAPI;
-import org.icij.swagger.petstore.SerializationMatchers;
 import org.junit.Test;
 
 import java.nio.file.Files;

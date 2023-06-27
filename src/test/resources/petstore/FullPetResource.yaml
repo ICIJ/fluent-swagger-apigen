@@ -38,10 +38,10 @@ paths:
           description: ID of pet that needs to be fetched
           required: true
           schema:
-            maximum: 5
-            minimum: 1
             type: integer
             format: int64
+            maximum: 5
+            minimum: 1
       responses:
         default:
           description: returns pet
@@ -224,7 +224,6 @@ paths:
 components:
   schemas:
     Category:
-      type: object
       properties:
         id:
           type: integer
@@ -234,10 +233,6 @@ components:
       xml:
         name: Category
     Pet:
-      required:
-        - name
-        - photoUrls
-      type: object
       properties:
         id:
           type: integer
@@ -249,28 +244,30 @@ components:
           example: doggie
         photoUrls:
           type: array
-          xml:
-            wrapped: true
           items:
             type: string
             xml:
               name: photoUrl
-        tags:
-          type: array
           xml:
             wrapped: true
+        tags:
+          type: array
           items:
             $ref: '#/components/schemas/Tag'
+          xml:
+            wrapped: true
         status:
           type: string
           description: pet status in the store
-          example: available
           enum:
             - "available,pending,sold"
+          example: available
+      required:
+        - name
+        - photoUrls
       xml:
         name: Pet
     Tag:
-      type: object
       properties:
         id:
           type: integer
@@ -280,21 +277,17 @@ components:
       xml:
         name: Tag
     Payload:
-      type: object
       properties:
         error:
           type: boolean
         success:
           type: boolean
     Context:
-      type: object
       properties:
         currentUser:
           $ref: '#/components/schemas/User'
-    User:
-      type: object
+    User: {}
     Order:
-      type: object
       properties:
         id:
           type: integer
@@ -310,10 +303,10 @@ components:
           format: date-time
         Order Status:
           type: string
-          xml:
-            name: status
           enum:
             - "placed, approved, delivered"
+          xml:
+            name: status
         complete:
           type: boolean
       xml:

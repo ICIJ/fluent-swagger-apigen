@@ -7,6 +7,7 @@ import io.swagger.v3.oas.integration.SwaggerConfiguration;
 import io.swagger.v3.oas.models.OpenAPI;
 import org.apache.commons.io.IOUtils;
 import org.icij.swagger.FluentReader;
+import org.icij.swagger.SerializationMatchers;
 
 import java.io.IOException;
 import java.io.InputStream;
