@@ -199,7 +199,7 @@ public class FluentReader extends Reader {
                         getPaths().putAll(getOpenAPI().getPaths());
                     }
                     getOpenAPI().setPaths(getPaths());
-                    LOGGER.info("added method {}.{} to openAPI", cls.getName(), route.method.getName());
+                    LOGGER.info("added method {}.{} ({}) to openAPI", cls.getName(), route.method.getName(), route.httpMethod);
                 }
             }
 
