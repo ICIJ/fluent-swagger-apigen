@@ -2,10 +2,7 @@ package org.icij.swagger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
-import io.swagger.v3.core.util.ObjectMapperFactory;
-import io.swagger.v3.core.util.Yaml;
+import io.swagger.v3.core.util.Yaml31;
 import io.swagger.v3.oas.models.OpenAPI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,19 +24,13 @@ public class Main {
         if (openAPI.getPaths().isEmpty()) {
             LOGGER.warn("cannot find classes in package {}", args[0]);
         } else {
-            ObjectNode objectNode = createFactory().convertValue(openAPI, ObjectNode.class);
-            String serialized = Yaml.pretty(objectNode);
+            ObjectNode objectNode = createObjectMapper().convertValue(openAPI, ObjectNode.class);
+            String serialized = Yaml31.pretty(objectNode);
             Files.write(Paths.get("openapi.yml"), serialized.getBytes());
         }
     }
 
-    static ObjectMapper createFactory() {
-        YAMLFactory factory = new YAMLFactory();
-        factory.disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER);
-        factory.enable(YAMLGenerator.Feature.MINIMIZE_QUOTES);
-        factory.enable(YAMLGenerator.Feature.SPLIT_LINES);
-        factory.enable(YAMLGenerator.Feature.ALWAYS_QUOTE_NUMBERS_AS_STRINGS);
-        ObjectMapper objectMapper = ObjectMapperFactory.create(factory, true);
-        return objectMapper;
+    static ObjectMapper createObjectMapper() {
+        return Yaml31.mapper();
     }
 }
