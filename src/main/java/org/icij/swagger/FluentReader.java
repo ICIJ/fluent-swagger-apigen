@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.introspect.AnnotatedMethod;
 import com.fasterxml.jackson.databind.introspect.AnnotatedParameter;
 import com.fasterxml.jackson.databind.type.TypeFactory;
-import com.google.common.collect.Ordering;
 import io.swagger.v3.core.util.AnnotationsUtils;
 import io.swagger.v3.core.util.Json;
 import io.swagger.v3.core.util.ParameterProcessor;
@@ -38,7 +37,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -47,7 +45,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.stream.Collectors;
 
 /**
  * from <a href="https://github.com/swagger-api/swagger-core/blob/master/modules/swagger-jaxrs2/src/main/java/io/swagger/v3/jaxrs2/Reader.java">Swagger Reader</a>
@@ -294,32 +291,6 @@ public class FluentReader extends Reader {
                 break;
             default:
                 break;
-        }
-    }
-
-    private static class MethodComparator implements Comparator<Method> {
-
-        @Override
-        public int compare(Method m1, Method m2) {
-            // First compare the names of the method
-            int val = m1.getName().compareTo(m2.getName());
-
-            // If the names are equal, compare each argument type
-            if (val == 0) {
-                val = m1.getParameterTypes().length - m2.getParameterTypes().length;
-                if (val == 0) {
-                    Class<?>[] types1 = m1.getParameterTypes();
-                    Class<?>[] types2 = m2.getParameterTypes();
-                    for (int i = 0; i < types1.length; i++) {
-                        val = types1[i].getName().compareTo(types2[i].getName());
-
-                        if (val != 0) {
-                            break;
-                        }
-                    }
-                }
-            }
-            return val;
         }
     }
 
