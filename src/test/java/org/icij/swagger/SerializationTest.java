@@ -28,7 +28,7 @@ public class SerializationTest {
 
         OpenAPI openAPI = new OpenAPI();
         openAPI.setComponents(components);
-        assertEquals(createObjectMapper().convertValue(openAPI, ObjectNode.class).toString(),
+        assertEquals(createObjectMapper(Main.Output.JSON).convertValue(openAPI, ObjectNode.class).toString(),
                         "{\"openapi\":\"3.0.1\",\"components\":{\"schemas\":{\"MyJavaBean\":{" +
                                 "\"properties\":{\"a\":{\"type\":\"integer\",\"format\":\"int32\"}," +
                                 "\"b\":{\"type\":\"boolean\"}}}}}}");
@@ -48,7 +48,7 @@ public class SerializationTest {
 
         OpenAPI openAPI = new OpenAPI();
         openAPI.setComponents(components);
-        assertEquals(createObjectMapper().convertValue(openAPI, ObjectNode.class).toString(),
+        assertEquals(createObjectMapper(Main.Output.JSON).convertValue(openAPI, ObjectNode.class).toString(),
                 "{\"openapi\":\"3.0.1\",\"components\":{\"schemas\":{\"Payload\":{" +
                         "\"properties\":{\"success\":{\"type\":\"boolean\"},\"error\":{\"type\":\"boolean\"}}}}}}");
     }

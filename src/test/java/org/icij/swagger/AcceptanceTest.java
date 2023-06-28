@@ -23,7 +23,7 @@ import static org.icij.swagger.Main.createObjectMapper;
 public class AcceptanceTest {
     @Test
     public void test_populate_openapi() throws Exception {
-        ObjectMapper mapper = createObjectMapper();
+        ObjectMapper mapper = createObjectMapper(Main.Output.YAML);
         JsonNode expectedValue = mapper.readTree(getClass().getClassLoader().getResource("petstore/FullPetResource.yaml"));
         final FluentReader reader = new FluentReader();
         final OpenAPI openAPI = reader.read(findAllClassesUsingClassLoader("org.icij.swagger.petstore"));
