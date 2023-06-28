@@ -1,5 +1,7 @@
 # fluent-swagger-apigen
 
+[![Java CI](https://github.com/ICIJ/fluent-swagger-apigen/actions/workflows/ci.yml/badge.svg)](https://github.com/ICIJ/fluent-swagger-apigen/actions/workflows/ci.yml)
+
 example : 
 
 ```
