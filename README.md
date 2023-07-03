@@ -27,7 +27,7 @@ First install [jbang](https://www.jbang.dev/)
 Then use it:
 
 ```shell
-jbang fluentopenapi.java
+jbang run --cp path/to/your/fluent/webapp.jar fluentopenapi.java
 ```
 
 ## How to document resources
