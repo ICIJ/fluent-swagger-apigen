@@ -30,6 +30,12 @@ Then use it:
 jbang run --cp path/to/your/fluent/webapp.jar fluentopenapi.java
 ```
 
+Or with github:
+
+```shell
+jbang run --cp path/to/your/fluent/webapp.jar  https://github.com/ICIJ/fluent-swagger-apigen/blob/main/src/main/java/fluentopenapi.java
+```
+
 ## How to document resources
 
 You will find a small example of a fluent petstore [in the tests](src/test/java/org/icij/swagger/petstore).
