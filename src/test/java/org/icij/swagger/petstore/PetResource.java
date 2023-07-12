@@ -103,7 +103,7 @@ public class PetResource {
     @Post("/:petId")
     public Payload updatePetWithForm (
             @Parameter(name = "petId", description = "ID of pet that needs to be updated", in = ParameterIn.PATH, required = true)Long petId,
-            Context context) {
+            Context context, boolean justToTestWith3Parameters) {
         String name = context.query().get("name");
         String status = context.query().get("status");
         Pet pet = petData.getPetById(petId);
