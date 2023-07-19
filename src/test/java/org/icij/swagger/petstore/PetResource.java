@@ -3,7 +3,9 @@ package org.icij.swagger.petstore;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -52,7 +54,14 @@ public class PetResource {
     }
 
 
-    @Operation(description = "Add a new pet to the store")
+    @Operation( description = "Add a new pet to the store",
+                requestBody = @RequestBody(
+                        content = @Content(
+                                mediaType = "application/json",
+                                schema = @Schema(implementation = Pet.class)
+                        )
+                )
+    )
     @ApiResponses(value = { @ApiResponse(responseCode = "200", description = "success", useReturnTypeSchema = true),
                             @ApiResponse(responseCode = "405", description = "Invalid input"),
                             @ApiResponse(responseCode = "200", useReturnTypeSchema = true)})
