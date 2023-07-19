@@ -107,7 +107,6 @@ public class FluentReader extends Reader {
                             null,
                             classResponses,
                             annotatedMethod);
-                    setOperationObjectFromApiOperationAnnotation(operation, apiOperation, null, null, null, null, null);
                     boolean methodDeprecated = ReflectionUtils.getAnnotation(route.method, Deprecated.class) != null;
 
                     if (methodDeprecated) {
