@@ -1,9 +1,11 @@
 package org.icij.swagger;
 
 import io.swagger.v3.core.util.Json31;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.SchemaProperty;
@@ -91,6 +93,18 @@ public class AnnotationsTest {
         );
     }
 
+    @Test
+    public void test_info() {
+        OpenAPI openAPI = new FluentReader().read(new HashSet<>() {{add(WithInfo.class);}});
+        assertThat(Json31.pretty(openAPI)).isEqualTo("{\n" +
+                "  \"openapi\" : \"3.0.1\",\n" +
+                "  \"info\" : {\n" +
+                "    \"title\" : \"this is the info\",\n" +
+                "    \"version\" : \"1.0.1\"\n" +
+                "  }\n" +
+                "}");
+    }
+
     @Prefix("/parameters")
     private static class ResourceWithRequestParameters {
         @Operation(description = "foo",
@@ -115,6 +129,9 @@ public class AnnotationsTest {
         @Post
         public void setFoo(Context context) {}
     }
+
+    @OpenAPIDefinition(info = @Info(title = "this is the info", version = "1.0.1"))
+    private static class WithInfo { }
 
     private static String getPretty(Class<?> resource) {
         OpenAPI openAPI = new FluentReader().read(new HashSet<>() {{add(resource);}});

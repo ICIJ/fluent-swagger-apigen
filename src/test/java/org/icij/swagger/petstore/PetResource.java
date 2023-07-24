@@ -1,8 +1,10 @@
 package org.icij.swagger.petstore;
 
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
@@ -25,6 +27,7 @@ import static net.codestory.http.payload.Payload.ok;
 
 
 @Tag(name = "/api/pet", description = "Operations about pets")
+@OpenAPIDefinition(info = @Info(title = "Fluent HTTP REST service", version = "3.0.3"))
 @Prefix("/api/pet")
 public class PetResource {
     static PetData petData = new PetData();

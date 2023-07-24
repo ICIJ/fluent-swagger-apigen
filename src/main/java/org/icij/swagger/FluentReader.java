@@ -11,8 +11,10 @@ import io.swagger.v3.core.util.ParameterProcessor;
 import io.swagger.v3.core.util.ReflectionUtils;
 import io.swagger.v3.jaxrs2.Reader;
 import io.swagger.v3.jaxrs2.ResolvedParameter;
+import io.swagger.v3.jaxrs2.SecurityParser;
 import io.swagger.v3.jaxrs2.ext.OpenAPIExtension;
 import io.swagger.v3.jaxrs2.ext.OpenAPIExtensions;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.integration.api.OpenAPIConfiguration;
 import io.swagger.v3.oas.models.Components;
@@ -74,6 +76,38 @@ public class FluentReader extends Reader {
                         Set<String> parentTags,
                         List<Parameter> parentParameters,
                         Set<Class<?>> scannedResources) {
+
+        // OpenApiDefinition
+        OpenAPIDefinition openAPIDefinition = ReflectionUtils.getAnnotation(cls, OpenAPIDefinition.class);
+        if (openAPIDefinition != null) {
+
+            // info
+            AnnotationsUtils.getInfo(openAPIDefinition.info()).ifPresent(info -> getOpenAPI().setInfo(info));
+
+            // OpenApiDefinition security requirements
+            SecurityParser
+                    .getSecurityRequirements(openAPIDefinition.security())
+                    .ifPresent(s -> getOpenAPI().setSecurity(s));
+            //
+            // OpenApiDefinition external docs
+            AnnotationsUtils
+                    .getExternalDocumentation(openAPIDefinition.externalDocs())
+                    .ifPresent(docs -> getOpenAPI().setExternalDocs(docs));
+
+            // OpenApiDefinition tags
+            AnnotationsUtils
+                    .getTags(openAPIDefinition.tags(), false)
+                    .ifPresent(tags -> getOpenApiTags().addAll(tags));
+
+            // OpenApiDefinition servers
+            AnnotationsUtils.getServers(openAPIDefinition.servers()).ifPresent(servers -> getOpenAPI().setServers(servers));
+
+            // OpenApiDefinition extensions
+            if (openAPIDefinition.extensions().length > 0) {
+                getOpenAPI().setExtensions(AnnotationsUtils
+                        .getExtensions(openAPIDefinition.extensions()));
+            }
+        }
 
         ApiResponse[] classResponses = ReflectionUtils.getRepeatableAnnotationsArray(cls, ApiResponse.class);
         io.swagger.v3.oas.annotations.tags.Tag[] apiTags = ReflectionUtils.getRepeatableAnnotationsArray(cls,
