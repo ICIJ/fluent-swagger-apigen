@@ -2,10 +2,16 @@ package org.icij.swagger;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.v3.core.util.ParameterProcessor;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.oas.models.parameters.Parameter;
+import net.codestory.http.annotations.Get;
+import net.codestory.http.annotations.Prefix;
 import net.codestory.http.payload.Payload;
+import org.assertj.core.api.Assertions;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -17,7 +23,7 @@ public class SerializationTest {
     @Test
     public void test_java_bean_properties_order() {
         Components components = new Components();
-        Parameter parameter = ParameterProcessor.applyAnnotations(
+        ParameterProcessor.applyAnnotations(
                 null,
                 MyJavaBean.class,
                 new ArrayList<>(),
@@ -37,7 +43,7 @@ public class SerializationTest {
     @Test
     public void test_payload_properties_order() {
         Components components = new Components();
-        Parameter parameter = ParameterProcessor.applyAnnotations(
+        ParameterProcessor.applyAnnotations(
                 null,
                 Payload.class,
                 new ArrayList<>(),
@@ -48,9 +54,9 @@ public class SerializationTest {
 
         OpenAPI openAPI = new OpenAPI();
         openAPI.setComponents(components);
-        assertEquals(createObjectMapper(Main.Output.JSON).convertValue(openAPI, ObjectNode.class).toString(),
-                "{\"openapi\":\"3.0.1\",\"components\":{\"schemas\":{\"Payload\":{" +
-                        "\"properties\":{\"success\":{\"type\":\"boolean\"},\"error\":{\"type\":\"boolean\"}}}}}}");
+        assertEquals("{\"openapi\":\"3.0.1\",\"components\":{\"schemas\":{\"Payload\":" +
+                        "{\"properties\":{\"error\":{\"type\":\"boolean\"},\"success\":{\"type\":\"boolean\"}}}}}}",
+                createObjectMapper(Main.Output.JSON).convertValue(openAPI, ObjectNode.class).toString());
     }
 
     private static class MyJavaBean {

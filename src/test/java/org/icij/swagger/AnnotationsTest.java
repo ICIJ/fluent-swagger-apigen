@@ -24,73 +24,103 @@ public class AnnotationsTest {
     @Test
     public void test_operation_parameter() {
         assertThat(getPretty(ResourceWithRequestParameters.class)).isEqualTo(
-                "{\n" +
-                        "  \"/parameters/:bar\" : {\n" +
-                        "    \"post\" : {\n" +
-                        "      \"description\" : \"foo\",\n" +
-                        "      \"operationId\" : \"setFoo\",\n" +
-                        "      \"parameters\" : [ {\n" +
-                        "        \"name\" : \"bar\",\n" +
-                        "        \"in\" : \"path\",\n" +
-                        "        \"required\" : true,\n" +
-                        "        \"schema\" : {\n" +
-                        "          \"type\" : \"integer\",\n" +
-                        "          \"format\" : \"int32\"\n" +
-                        "        }\n" +
-                        "      } ],\n" +
-                        "      \"responses\" : {\n" +
-                        "        \"default\" : {\n" +
-                        "          \"description\" : \"default response\",\n" +
-                        "          \"content\" : {\n" +
-                        "            \"*/*\" : { }\n" +
-                        "          }\n" +
-                        "        }\n" +
-                        "      }\n" +
-                        "    }\n" +
-                        "  }\n" +
-                        "}"
+                """
+                        {
+                          "/parameters/{bar}" : {
+                            "post" : {
+                              "description" : "foo",
+                              "operationId" : "setFoo",
+                              "parameters" : [ {
+                                "name" : "bar",
+                                "in" : "path",
+                                "required" : true,
+                                "schema" : {
+                                  "type" : "integer",
+                                  "format" : "int32"
+                                }
+                              } ],
+                              "responses" : {
+                                "default" : {
+                                  "description" : "default response",
+                                  "content" : {
+                                    "*/*" : { }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }"""
         );
     }
 
     @Test
     public void test_request_body_multipart_parameters() {
         assertThat(getPretty(MultipartParameters.class)).isEqualTo(
-                "{\n" +
-                        "  \"/multipart\" : {\n" +
-                        "    \"post\" : {\n" +
-                        "      \"description\" : \"foo\",\n" +
-                        "      \"operationId\" : \"setFoo\",\n" +
-                        "      \"requestBody\" : {\n" +
-                        "        \"description\" : \"multipart form\",\n" +
-                        "        \"content\" : {\n" +
-                        "          \"multipart/form-data\" : {\n" +
-                        "            \"schema\" : {\n" +
-                        "              \"properties\" : {\n" +
-                        "                \"baz\" : {\n" +
-                        "                  \"type\" : \"string\"\n" +
-                        "                },\n" +
-                        "                \"qux\" : {\n" +
-                        "                  \"type\" : \"integer\",\n" +
-                        "                  \"format\" : \"int32\"\n" +
-                        "                }\n" +
-                        "              }\n" +
-                        "            }\n" +
-                        "          }\n" +
-                        "        },\n" +
-                        "        \"required\" : true\n" +
-                        "      },\n" +
-                        "      \"responses\" : {\n" +
-                        "        \"default\" : {\n" +
-                        "          \"description\" : \"default response\",\n" +
-                        "          \"content\" : {\n" +
-                        "            \"*/*\" : { }\n" +
-                        "          }\n" +
-                        "        }\n" +
-                        "      }\n" +
-                        "    }\n" +
-                        "  }\n" +
-                        "}"
+                """
+                        {
+                          "/multipart" : {
+                            "post" : {
+                              "description" : "foo",
+                              "operationId" : "setFoo",
+                              "requestBody" : {
+                                "description" : "multipart form",
+                                "content" : {
+                                  "multipart/form-data" : {
+                                    "schema" : {
+                                      "properties" : {
+                                        "baz" : {
+                                          "type" : "string"
+                                        },
+                                        "qux" : {
+                                          "type" : "integer",
+                                          "format" : "int32"
+                                        }
+                                      }
+                                    }
+                                  }
+                                },
+                                "required" : true
+                              },
+                              "responses" : {
+                                "default" : {
+                                  "description" : "default response",
+                                  "content" : {
+                                    "*/*" : { }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }"""
         );
+    }
+
+    @Test
+    public void test_request_with_query_parameters() {
+        assertThat(getPretty(ResourceWithRequestQueryParameters.class)).isEqualTo("""
+        {
+          "/parameters/foo?bar={bar}" : {
+            "post" : {
+              "description" : "foo",
+              "operationId" : "getFooWithBar",
+              "parameters" : [ {
+                "in" : "query",
+                "schema" : {
+                  "type" : "integer",
+                  "format" : "int32"
+                }
+              } ],
+              "responses" : {
+                "default" : {
+                  "description" : "default response",
+                  "content" : {
+                    "*/*" : { }
+                  }
+                }
+              }
+            }
+          }
+        }""");
     }
 
     @Test
@@ -112,6 +142,13 @@ public class AnnotationsTest {
         )
         @Post("/:bar")
         public void setFoo(Integer bar, Context context) {}
+    }
+
+    @Prefix("/parameters")
+    private static class ResourceWithRequestQueryParameters {
+        @Operation(description = "foo")
+        @Post("/foo?bar=:bar")
+        public void getFooWithBar(@Parameter(in = ParameterIn.QUERY) Integer bar) {}
     }
 
     @Prefix("/multipart")

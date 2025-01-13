@@ -27,10 +27,13 @@ import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.parameters.RequestBody;
 import io.swagger.v3.oas.models.responses.ApiResponses;
+import net.codestory.http.Query;
 import net.codestory.http.annotations.AnnotationHelper;
 import net.codestory.http.annotations.Prefix;
 import net.codestory.http.constants.Methods;
+import net.codestory.http.routes.UriParser;
 import org.apache.commons.lang3.StringUtils;
+import org.simpleframework.http.parse.QueryParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +42,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -363,7 +367,13 @@ public class FluentReader extends Reader {
         Set<RouteData> routes = new TreeSet<>();
 
         protected void addResource(String httpMethod, Method method, String uriPattern) {
-            routes.add(new RouteData(httpMethod, method, uriPattern));
+            UriParser parser = new UriParser(uriPattern);
+            String[] params = parser.params(uriPattern, new SimpleQuery(new QueryParser(queryParams(uriPattern))));
+            String uriPatterWithCurlyBraces = uriPattern;
+            for (String param : params) {
+                uriPatterWithCurlyBraces = uriPatterWithCurlyBraces.replace(param, String.format("{%s}", param.replace(":", "")));
+            }
+            routes.add(new RouteData(httpMethod, method, uriPatterWithCurlyBraces));
         }
     }
 
@@ -382,6 +392,45 @@ public class FluentReader extends Reader {
         public int compareTo(RouteData other) {
             int uriPatternResult = this.uriPattern.compareTo(other.uriPattern);
             return uriPatternResult == 0 ? this.httpMethod.compareTo(other.httpMethod) : uriPatternResult;
+        }
+    }
+
+    static String queryParams(String uri) {
+        int indexQuestionMark = uri.indexOf(63);
+        return indexQuestionMark == -1 ? uri : uri.substring(indexQuestionMark+1);
+    }
+
+    static class SimpleQuery implements Query {
+        private final org.simpleframework.http.Query query;
+
+        SimpleQuery(org.simpleframework.http.Query query) {
+            this.query = query;
+        }
+
+        @Override
+        public Collection<String> keys() {
+            return query.keySet();
+        }
+
+        @Override
+        public String get(String name) {
+            return query.get(name);
+        }
+
+        @Override
+        public Iterable<String> all(String name) {
+            return query.getAll(name);
+        }
+
+        @Override
+        public Map<String, String> keyValues() {
+            return query;
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public <T> T unwrap(Class<T> type) {
+            return type.isInstance(query) ? (T) query : null;
         }
     }
 }
