@@ -10,10 +10,12 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.SchemaProperty;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.models.OpenAPI;
 import net.codestory.http.Context;
 import net.codestory.http.annotations.Post;
 import net.codestory.http.annotations.Prefix;
+import net.codestory.http.payload.Payload;
 import org.junit.Test;
 
 import java.util.HashSet;
@@ -104,10 +106,11 @@ public class AnnotationsTest {
               "description" : "foo",
               "operationId" : "getFooWithBar",
               "parameters" : [ {
+                "name" : "bar",
                 "in" : "query",
+                "description" : "description",
                 "schema" : {
-                  "type" : "integer",
-                  "format" : "int32"
+                  "type" : "string"
                 }
               } ],
               "responses" : {
@@ -122,6 +125,42 @@ public class AnnotationsTest {
           }
         }""");
     }
+    @Test
+    public void test_request_with_custom_type_parameter() {
+        assertThat(getPretty(ResourceWithCustomTypeParameter.class)).isEqualTo("""
+        {
+          "/foo/bar" : {
+            "post" : {
+              "description" : "bar",
+              "operationId" : "postFooBar",
+              "requestBody" : {
+                "description" : "json bar",
+                "content" : {
+                  "application/json" : {
+                    "schema" : {
+                      "$ref" : "#/components/schemas/Bar"
+                    }
+                  }
+                },
+                "required" : true
+              },
+              "responses" : {
+                "default" : {
+                  "description" : "default response",
+                  "content" : {
+                    "*/*" : {
+                      "schema" : {
+                        "type" : "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }""");
+    }
+
 
     @Test
     public void test_info() {
@@ -146,9 +185,27 @@ public class AnnotationsTest {
 
     @Prefix("/parameters")
     private static class ResourceWithRequestQueryParameters {
-        @Operation(description = "foo")
+        @Operation(description = "foo",
+                parameters = {
+                        @Parameter(name = "bar",
+                                description = """
+                                description""", in = ParameterIn.QUERY, schema = @Schema(implementation = String.class))
+                }
+        )
         @Post("/foo?bar=:bar")
-        public void getFooWithBar(@Parameter(in = ParameterIn.QUERY) Integer bar) {}
+        public void getFooWithBar(String bar) {}
+    }
+
+    @Prefix("/foo")
+    private static class ResourceWithCustomTypeParameter {
+        @Operation(description = "bar",
+                requestBody = @RequestBody(description = "json bar", required = true,
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Bar.class))
+                )
+        )
+        @ApiResponse(responseCode = "200")
+        @Post("/bar")
+        public String postFooBar(Bar bar) {return "OK";}
     }
 
     @Prefix("/multipart")
@@ -169,6 +226,8 @@ public class AnnotationsTest {
 
     @OpenAPIDefinition(info = @Info(title = "this is the info", version = "1.0.1"))
     private static class WithInfo { }
+
+    private record Bar(String baz) { }
 
     private static String getPretty(Class<?> resource) {
         OpenAPI openAPI = new FluentReader().read(new HashSet<>() {{add(resource);}});
