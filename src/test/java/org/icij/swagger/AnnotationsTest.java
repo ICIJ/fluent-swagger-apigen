@@ -15,7 +15,6 @@ import io.swagger.v3.oas.models.OpenAPI;
 import net.codestory.http.Context;
 import net.codestory.http.annotations.Post;
 import net.codestory.http.annotations.Prefix;
-import net.codestory.http.payload.Payload;
 import org.junit.Test;
 
 import java.util.HashSet;
@@ -41,6 +40,73 @@ public class AnnotationsTest {
                                   "format" : "int32"
                                 }
                               } ],
+                              "requestBody" : {
+                                "content" : {
+                                  "*/*" : {
+                                    "schema" : {
+                                      "type" : "integer",
+                                      "format" : "int32"
+                                    }
+                                  }
+                                }
+                              },
+                              "responses" : {
+                                "default" : {
+                                  "description" : "default response",
+                                  "content" : {
+                                    "*/*" : { }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }"""
+        );
+    }
+
+    @Test
+    public void test_operation_3parameters() {
+        assertThat(getPretty(ResourceWith3Parameters.class)).isEqualTo(
+                """
+                        {
+                          "/3parameters/{bar}/{baz}/{qux}" : {
+                            "post" : {
+                              "description" : "foo",
+                              "operationId" : "setFooWithBarBazQux",
+                              "parameters" : [ {
+                                "name" : "bar",
+                                "in" : "path",
+                                "required" : true,
+                                "schema" : {
+                                  "type" : "integer",
+                                  "format" : "int32"
+                                }
+                              }, {
+                                "name" : "baz",
+                                "in" : "path",
+                                "required" : true,
+                                "schema" : {
+                                  "type" : "string"
+                                }
+                              }, {
+                                "name" : "qux",
+                                "in" : "path",
+                                "required" : true,
+                                "schema" : {
+                                  "type" : "integer",
+                                  "format" : "int32"
+                                }
+                              } ],
+                              "requestBody" : {
+                                "content" : {
+                                  "*/*" : {
+                                    "schema" : {
+                                      "type" : "integer",
+                                      "format" : "int32"
+                                    }
+                                  }
+                                }
+                              },
                               "responses" : {
                                 "default" : {
                                   "description" : "default response",
@@ -113,6 +179,15 @@ public class AnnotationsTest {
                   "type" : "string"
                 }
               } ],
+              "requestBody" : {
+                "content" : {
+                  "*/*" : {
+                    "schema" : {
+                      "type" : "string"
+                    }
+                  }
+                }
+              },
               "responses" : {
                 "default" : {
                   "description" : "default response",
@@ -181,6 +256,19 @@ public class AnnotationsTest {
         )
         @Post("/:bar")
         public void setFoo(Integer bar, Context context) {}
+    }
+
+    @Prefix("/3parameters")
+    private static class ResourceWith3Parameters {
+        @Operation(description = "foo",
+                parameters = {
+                    @Parameter(name = "bar", in = ParameterIn.PATH,schema = @Schema(implementation = Integer.class)),
+                    @Parameter(name = "baz", in = ParameterIn.PATH,schema = @Schema(implementation = String.class)),
+                    @Parameter(name = "qux", in = ParameterIn.PATH,schema = @Schema(implementation = Integer.class))
+                }
+        )
+        @Post("/:bar/:baz/:qux")
+        public void setFooWithBarBazQux(Integer bar, String baz, Integer qux) {}
     }
 
     @Prefix("/parameters")
