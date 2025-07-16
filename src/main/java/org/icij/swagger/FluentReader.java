@@ -376,12 +376,12 @@ public class FluentReader extends Reader {
         }
     }
 
-    private static class RouteCollection {
+    static class RouteCollection {
         Set<RouteData> routes = new TreeSet<>();
 
         protected void addResource(String httpMethod, Method method, String uriPattern) {
             UriParser parser = new UriParser(uriPattern);
-            String[] params = parser.params(uriPattern, new SimpleQuery(new QueryParser(queryParams(uriPattern))));
+            String[] params = parser.params(bareUri(uriPattern), new SimpleQuery(new QueryParser(queryParams(uriPattern))));
             String uriPatterWithCurlyBraces = uriPattern;
             for (String param : params) {
                 uriPatterWithCurlyBraces = uriPatterWithCurlyBraces.replace(param, String.format("{%s}", param.replace(":", "")));
@@ -390,17 +390,7 @@ public class FluentReader extends Reader {
         }
     }
 
-    private static class RouteData implements Comparable<RouteData> {
-        final String httpMethod;
-        final Method method;
-        final String uriPattern;
-
-        private RouteData(String httpMethod, Method method, String uriPattern) {
-            this.httpMethod = httpMethod;
-            this.method = method;
-            this.uriPattern = uriPattern;
-        }
-
+    record RouteData(String httpMethod, Method method, String uriPattern) implements Comparable<RouteData> {
         @Override
         public int compareTo(RouteData other) {
             int uriPatternResult = this.uriPattern.compareTo(other.uriPattern);
@@ -411,6 +401,11 @@ public class FluentReader extends Reader {
     static String queryParams(String uri) {
         int indexQuestionMark = uri.indexOf(63);
         return indexQuestionMark == -1 ? uri : uri.substring(indexQuestionMark+1);
+    }
+
+    static String bareUri(String uri) {
+        int indexQuestionMark = uri.indexOf(63);
+        return indexQuestionMark == -1 ? uri : uri.substring(0, indexQuestionMark);
     }
 
     static class SimpleQuery implements Query {
